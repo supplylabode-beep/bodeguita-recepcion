@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Recepción de Insumos — La Bodeguita</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #1A1A2E;
+    color: #E8EAF0;
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  .header {
+    background: #0F3460;
+    padding: 16px 20px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .header h1 { font-size: 17px; font-weight: 600; color: #fff; }
+  .header p  { font-size: 12px; color: #8892A4; margin-top: 2px; }
+
+  .container { padding: 16px; max-width: 480px; margin: 0 auto; }
+
+  .step {
+    background: #16213E;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
+    border: 1px solid #0F3460;
+  }
+  .step-label {
+    font-size: 11px;
+    color: #8892A4;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .step h2 {
+    font-size: 15px;
+    color: #fff;
+    margin-bottom: 12px;
+  }
+
+  select, input[type="text"], input[type="number"] {
+    width: 100%;
+    padding: 12px 14px;
+    background: #0F3460;
+    border: 1px solid #1A2A4A;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 15px;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  select:focus, input:focus {
+    outline: none;
+    border-color: #E94560;
+  }
+  select option { background: #0F3460; }
+
+  .productos-lista { margin-top: 4px; }
+
+  .producto-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #1A2A4A;
+  }
+  .producto-item:last-child { border-bottom: none; }
+
+  .producto-check {
+    width: 22px;
+    height: 22px;
+    accent-color: #E94560;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .producto-nombre {
+    flex: 1;
+    font-size: 13px;
+    color: #E8EAF0;
+    cursor: pointer;
+  }
+  .producto-unidad {
+    font-size: 11px;
+    color: #8892A4;
+    flex-shrink: 0;
+  }
+
+  .cantidad-row {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0 10px 32px;
+    border-bottom: 1px solid #1A2A4A;
+  }
+  .cantidad-row.visible { display: flex; }
+  .cantidad-row label { font-size: 12px; color: #8892A4; flex-shrink: 0; }
+  .cantidad-row input {
+    width: 90px;
+    padding: 8px 10px;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .btn-submit {
+    width: 100%;
+    padding: 16px;
+    background: #E94560;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    letter-spacing: 0.3px;
+  }
+  .btn-submit:active { background: #C0392B; }
+  .btn-submit:disabled { background: #444; color: #888; cursor: not-allowed; }
+
+  .resumen {
+    background: #0F3460;
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 12px;
+    display: none;
+  }
+  .resumen.visible { display: block; }
+  .resumen h3 { font-size: 13px; color: #F5A623; margin-bottom: 8px; }
+  .resumen-item { font-size: 12px; color: #E8EAF0; padding: 3px 0; }
+  .resumen-item span { color: #0F9B58; font-weight: 600; }
+
+  .success {
+    display: none;
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .success.visible { display: block; }
+  .success .icon { font-size: 60px; margin-bottom: 16px; }
+  .success h2 { font-size: 22px; color: #0F9B58; margin-bottom: 8px; }
+  .success p { font-size: 14px; color: #8892A4; margin-bottom: 24px; }
+  .btn-nuevo {
+    padding: 14px 32px;
+    background: #0F3460;
+    color: #fff;
+    border: 1px solid #E94560;
+    border-radius: 12px;
+    font-size: 15px;
+    cursor: pointer;
+  }
+
+  .loading {
+    display: none;
+    text-align: center;
+    padding: 20px;
+    color: #8892A4;
+    font-size: 14px;
+  }
+  .loading.visible { display: block; }
+
+  .error-msg {
+    background: #2A0A10;
+    border: 1px solid #E94560;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 13px;
+    color: #E94560;
+    margin-top: 10px;
+    display: none;
+  }
+  .error-msg.visible { display: block; }
+
+  .badge {
+    display: inline-block;
+    background: #E94560;
+    color: #fff;
+    border-radius: 10px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 8px;
+  }
+
+  .no-productos {
+    text-align: center;
+    padding: 20px;
+    color: #8892A4;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>La Bodeguita 🍖</h1>
+  <p>Recepción de Insumos</p>
+</div>
+
+<div id="formView" class="container">
+
+  <!-- STEP 1: Quién carga -->
+  <div class="step">
+    <div class="step-label">Paso 1</div>
+    <h2>¿Quién carga?</h2>
+    <select id="encargado" onchange="checkStep1()">
+      <option value="">Seleccioná...</option>
+      <option>Pato</option>
+      <option>Nai</option>
+      <option>Estel</option>
+    </select>
+  </div>
+
+  <!-- STEP 2: Proveedor -->
+  <div class="step">
+    <div class="step-label">Paso 2</div>
+    <h2>¿Qué proveedor llegó?</h2>
+    <select id="proveedor" onchange="cargarProductos()">
+      <option value="">Seleccioná...</option>
+      <option>La Esperanza</option>
+      <option>Cepro</option>
+      <option>Canut</option>
+      <option>Virginia Girasol</option>
+      <option>Cook Express</option>
+      <option>Juanchi</option>
+      <option>Tony</option>
+      <option>Gustavo Nasini</option>
+      <option>Renato</option>
+    </select>
+  </div>
+
+  <!-- STEP 3: Boleta -->
+  <div class="step">
+    <div class="step-label">Paso 3</div>
+    <h2>N° de boleta <span style="color:#8892A4;font-size:13px;">(opcional)</span></h2>
+    <input type="text" id="boleta" placeholder="Ej: 0023-00008010">
+  </div>
+
+  <!-- STEP 4: Productos -->
+  <div class="step" id="stepProductos" style="display:none;">
+    <div class="step-label">Paso 4</div>
+    <h2>Productos que entraron <span id="badgeCount" class="badge" style="display:none;">0</span></h2>
+    <div id="listaProductos" class="productos-lista"></div>
+  </div>
+
+  <!-- Resumen -->
+  <div class="resumen" id="resumen">
+    <h3>📋 Resumen del pedido</h3>
+    <div id="resumenContent"></div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-msg" id="errorMsg"></div>
+
+  <!-- Botón enviar -->
+  <button class="btn-submit" id="btnEnviar" onclick="enviarDatos()" disabled>
+    Registrar recepción
+  </button>
+
+  <div class="loading" id="loading">
+    Guardando en el sistema...
+  </div>
+
+</div>
+
+<!-- SUCCESS -->
+<div id="successView" class="container success">
+  <div class="icon">✅</div>
+  <h2>¡Registrado!</h2>
+  <p id="successMsg">La recepción fue guardada correctamente.</p>
+  <button class="btn-nuevo" onclick="resetForm()">Registrar otro pedido</button>
+</div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJcwIBLz64S9Tc7QxfpEIbNwHkVnsiuNGBxcUOW9Tmc_ZhtfZvsuV2glOSENSephIVhQ/exec";
+
+const PRODUCTOS = {
+  "La Esperanza": [
+    {p:"Crema de leche Balde (x Litro)", u:"Lt"},
+    {p:"Leche entera Caja", u:"Caja x 12"},
+    {p:"Queso crema", u:"Pouch"},
+    {p:"Queso Danbo", u:"Horma"},
+    {p:"Queso Azul LaQuesera", u:"Horma"},
+    {p:"Jamon Cocido Paladini", u:"Horma"},
+    {p:"Queso Provolone Brescia", u:"Horma"},
+    {p:"Queso Muzza La Paulina P/Fetear", u:"Horma"},
+    {p:"Dambo Vegano Feteado x150gr", u:"Paq"},
+    {p:"Queso Cheddar feteado", u:"Horma"},
+    {p:"Lomo horneado Labratto", u:"Horma"},
+    {p:"Panceta Salada Paladini", u:"Horma"},
+    {p:"Comino", u:"Gr"},
+    {p:"Aji Molido", u:"Gr"},
+    {p:"Oregano", u:"Gr"},
+    {p:"Tomillo", u:"Gr"},
+    {p:"Romero", u:"Gr"},
+    {p:"Semillas", u:"Gr"},
+    {p:"Sal Fina", u:"Kg"},
+    {p:"Azucar", u:"Pack x 10u"},
+    {p:"Pimienton ahumado", u:"Gr"},
+    {p:"Humo Liquido", u:"Lt"},
+    {p:"Caldo de Verduras", u:"Paq x 650gr"},
+    {p:"Caldo de Gallina", u:"Paq x 650gr"},
+    {p:"Caldo Carne", u:"Paq x 650gr"},
+    {p:"Ajo deshidratado en polvo", u:"Gr"},
+    {p:"Ajo Deshidratado (no en polvo)", u:"Gr"},
+    {p:"Perejil Deshidratado", u:"Gr"},
+    {p:"Pimienta negra", u:"Gr"},
+    {p:"Aceitunas Balde x 4lt", u:"Balde"},
+    {p:"Arvejas", u:"Lata"},
+    {p:"Ketchup Pouch Hellmanns 3lt", u:"Pouch"},
+    {p:"Polenta", u:"Kg"},
+    {p:"Mayonesa Pouch Hellmanns 3lt", u:"Pouch"},
+    {p:"Mostaza Pouch Hellmanns 3lt", u:"Pouch"},
+    {p:"Mayo Vegana", u:"Unidad"},
+    {p:"Choclo en lata", u:"Lata"},
+    {p:"Harina 0000", u:"Kg"},
+    {p:"Pan Rallado", u:"Kg"},
+    {p:"Salchichas largas Paladini", u:"Paq"},
+    {p:"Tapas de empanadas Tapa 14", u:"Paq"},
+    {p:"Vinagre", u:"Lt"},
+    {p:"Rebozador Knorr", u:"Kg"},
+    {p:"Avena", u:"Kg"},
+    {p:"Arroz Yamani", u:"Kg"},
+    {p:"Arroz Gallo", u:"Kg"},
+    {p:"Mani Tostado", u:"Kg"},
+    {p:"Miel", u:"Lt"},
+    {p:"Maicena", u:"Kg"},
+    {p:"Aceto", u:"Lt"},
+    {p:"Salsa tomate botella", u:"Lt"},
+    {p:"Premezcla de Chipa", u:"Paq"},
+    {p:"Vino Blanco", u:"Lt"},
+    {p:"Hamburguesas Paladini", u:"Pack 60u"},
+    {p:"Cerveza negra", u:"Six Pack"},
+    {p:"Noquis", u:"Kg"},
+    {p:"Salsa de soja", u:"Lt"},
+    {p:"Vinagre de manzana", u:"Lt"},
+    {p:"Salsa Sriracha", u:"Unidad"},
+  ],
+  "Cepro": [
+    {p:"Queso Muzzarella Chengo x10kg", u:"Horma"},
+    {p:"Queso Fontina", u:"Horma"},
+  ],
+  "Canut": [
+    {p:"Queso Muzza Ahumada Canut", u:"Horma"},
+  ],
+  "Virginia Girasol": [
+    {p:"Aceite", u:"Lt"},
+    {p:"Aceite de Oliva Olivares del Sol x 1Lt", u:"Lt"},
+  ],
+  "Cook Express": [
+    {p:"Ajo", u:"Unidad"},
+    {p:"Berenjenas", u:"Kg"},
+    {p:"Champiniones", u:"Kg"},
+    {p:"Cebolla Morada", u:"Kg"},
+    {p:"Espinaca", u:"Atado"},
+    {p:"Huevos", u:"Cajon"},
+    {p:"Perejil", u:"Atado"},
+    {p:"Pimiento Amarillo", u:"Kg"},
+    {p:"Pimiento Rojo", u:"Kg"},
+    {p:"Pimiento Verde", u:"Kg"},
+    {p:"Rucula", u:"Atado"},
+    {p:"Remolacha", u:"Kg"},
+    {p:"Sacos de Batata", u:"Bolsa"},
+    {p:"Sacos de Cebollas", u:"Bolsa"},
+    {p:"Sacos de Papa lavada", u:"Bolsa"},
+    {p:"Tomate Disecado", u:"Kg"},
+    {p:"Tomate Cherry", u:"Kg"},
+    {p:"Verdeo", u:"Atado"},
+    {p:"Zucchini", u:"Kg"},
+    {p:"Bolsa de Zanahoria", u:"Bolsa"},
+    {p:"Tomate", u:"Kg"},
+    {p:"Cabutia", u:"Unidad"},
+    {p:"Repollitos Bruselas", u:"Kg"},
+    {p:"Albahaca", u:"Atado"},
+  ],
+  "Juanchi": [
+    {p:"Bondiola descongelada", u:"Kg"},
+    {p:"Blend Americana (roast - tapa)", u:"Kg"},
+    {p:"Cuadril Feteado", u:"Kg"},
+    {p:"Fillet de Pollo", u:"Kg"},
+    {p:"Roast Beef", u:"Kg"},
+    {p:"Nalga Feteada", u:"Kg"},
+    {p:"Bife de Chorizo feteado", u:"Kg"},
+  ],
+  "Tony": [
+    {p:"Pan Vegano", u:"Docena"},
+    {p:"Pan de Miga", u:"Bolsa"},
+    {p:"Chipa", u:"Unidad"},
+    {p:"Focaccia (1 placa)", u:"Unidad"},
+    {p:"Pan de papa", u:"Docena"},
+    {p:"Pizza Muzza", u:"Unidad"},
+    {p:"Masa Quesadilla", u:"Docena"},
+    {p:"Pizza Personal", u:"Unidad"},
+    {p:"Ciabata", u:"Unidad"},
+    {p:"Brioche pebete", u:"Unidad"},
+    {p:"Torpedo gigante", u:"Unidad"},
+  ],
+  "Gustavo Nasini": [
+    {p:"Pizza Mozza Sin Tacc", u:"Unidad"},
+    {p:"Pizza Rucula Sin Tacc", u:"Unidad"},
+    {p:"Pizza Caprese Sin Tacc", u:"Unidad"},
+    {p:"Tarta Calabaza Sin Tacc", u:"Unidad"},
+    {p:"Tarta Capresse Sin Tacc", u:"Unidad"},
+    {p:"Tarta de Verdura Sin Tacc", u:"Unidad"},
+    {p:"Tarta J&Q Sin Tacc", u:"Unidad"},
+    {p:"Tarta Pollo Sin Tacc", u:"Unidad"},
+  ],
+  "Renato": [
+    {p:"Oreo", u:"Unidad"},
+    {p:"Choco", u:"Unidad"},
+    {p:"Tiramisu", u:"Unidad"},
+    {p:"Cheese", u:"Unidad"},
+  ],
+};
+
+function checkStep1() {
+  updateBoton();
+}
+
+function cargarProductos() {
+  const prov = document.getElementById("proveedor").value;
+  const step = document.getElementById("stepProductos");
+  const lista = document.getElementById("listaProductos");
+
+  if (!prov) {
+    step.style.display = "none";
+    return;
+  }
+
+  step.style.display = "block";
+  lista.innerHTML = "";
+
+  const productos = PRODUCTOS[prov] || [];
+  if (productos.length === 0) {
+    lista.innerHTML = '<div class="no-productos">No hay productos cargados para este proveedor.</div>';
+    return;
+  }
+
+  productos.forEach((item, idx) => {
+    const checkId = `chk_${idx}`;
+    const cantId  = `cant_${idx}`;
+
+    // Fila del producto
+    const row = document.createElement("div");
+    row.className = "producto-item";
+    row.id = `row_${idx}`;
+    row.innerHTML = `
+      <input type="checkbox" class="producto-check" id="${checkId}" onchange="toggleCantidad(${idx})">
+      <label class="producto-nombre" for="${checkId}">${item.p}</label>
+      <span class="producto-unidad">${item.u}</span>
+    `;
+    lista.appendChild(row);
+
+    // Fila de cantidad (oculta hasta tildar)
+    const cantRow = document.createElement("div");
+    cantRow.className = "cantidad-row";
+    cantRow.id = `cantRow_${idx}`;
+    const unidades = ["Kg","Gr","Lt","Unidad","Horma","Paq","Bolsa","Atado","Lata","Cajón","Docena","Pouch","Balde","Six Pack"];
+    const optsUnidad = unidades.map(u => `<option value="${u}" ${u === item.u ? "selected" : ""}>${u}</option>`).join("");
+    cantRow.innerHTML = `
+      <label>Cant:</label>
+      <input type="number" id="${cantId}" min="0" step="0.1" placeholder="0"
+             oninput="actualizarResumen()" style="width:72px;">
+      <select id="unit_${idx}" onchange="actualizarResumen()" style="width:95px;padding:8px 4px;font-size:13px;background:#0F3460;border:1px solid #1A2A4A;border-radius:8px;color:#fff;">
+        ${optsUnidad}
+      </select>
+    `;
+    lista.appendChild(cantRow);
+  });
+
+  updateBoton();
+  actualizarResumen();
+}
+
+function toggleCantidad(idx) {
+  const chk     = document.getElementById(`chk_${idx}`);
+  const cantRow = document.getElementById(`cantRow_${idx}`);
+  const cantInput = document.getElementById(`cant_${idx}`);
+
+  if (chk.checked) {
+    cantRow.classList.add("visible");
+    cantInput.focus();
+  } else {
+    cantRow.classList.remove("visible");
+    cantInput.value = "";
+  }
+
+  actualizarResumen();
+  updateBoton();
+}
+
+function actualizarResumen() {
+  const prov    = document.getElementById("proveedor").value;
+  const resumen = document.getElementById("resumen");
+  const content = document.getElementById("resumenContent");
+  const badge   = document.getElementById("badgeCount");
+
+  if (!prov) return;
+
+  const productos = PRODUCTOS[prov] || [];
+  const seleccionados = [];
+
+  productos.forEach((item, idx) => {
+    const chk  = document.getElementById(`chk_${idx}`);
+    const cant = document.getElementById(`cant_${idx}`);
+    if (chk && chk.checked) {
+      const cantidad = cant && cant.value ? cant.value : "-";
+      const unitSel = document.getElementById(`unit_${idx}`);
+      const unidad = unitSel ? unitSel.value : item.u;
+      seleccionados.push({producto: item.p, cantidad, unidad});
+    }
+  });
+
+  if (seleccionados.length > 0) {
+    badge.style.display = "inline-block";
+    badge.textContent = seleccionados.length;
+    resumen.classList.add("visible");
+    content.innerHTML = seleccionados.map(s =>
+      `<div class="resumen-item">• ${s.producto} → <span>${s.cantidad} ${s.unidad}</span></div>`
+    ).join("");
+  } else {
+    badge.style.display = "none";
+    resumen.classList.remove("visible");
+  }
+
+  updateBoton();
+}
+
+function getSeleccionados() {
+  const prov = document.getElementById("proveedor").value;
+  if (!prov) return [];
+  const productos = PRODUCTOS[prov] || [];
+  const seleccionados = [];
+  productos.forEach((item, idx) => {
+    const chk  = document.getElementById(`chk_${idx}`);
+    const cant = document.getElementById(`cant_${idx}`);
+    if (chk && chk.checked) {
+      const unitSel2 = document.getElementById(`unit_${idx}`);
+      const unidad2 = unitSel2 ? unitSel2.value : item.u;
+      seleccionados.push({producto: item.p, cantidad: cant ? cant.value : "", unidad: unidad2});
+    }
+  });
+  return seleccionados;
+}
+
+function updateBoton() {
+  const encargado = document.getElementById("encargado").value;
+  const prov      = document.getElementById("proveedor").value;
+  const sel       = getSeleccionados();
+  const btn       = document.getElementById("btnEnviar");
+  btn.disabled    = !(encargado && prov && sel.length > 0);
+}
+
+async function enviarDatos() {
+  const encargado = document.getElementById("encargado").value;
+  const prov      = document.getElementById("proveedor").value;
+  const boleta    = document.getElementById("boleta").value;
+  const sel       = getSeleccionados();
+
+  if (!encargado || !prov || sel.length === 0) return;
+
+  document.getElementById("btnEnviar").style.display  = "none";
+  document.getElementById("loading").classList.add("visible");
+  document.getElementById("errorMsg").classList.remove("visible");
+
+  const payload = {
+    encargado,
+    proveedor: prov,
+    boleta,
+    productos: sel
+  };
+
+  try {
+    const resp = await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    const data = await resp.json();
+
+    document.getElementById("loading").classList.remove("visible");
+
+    if (data.status === "ok") {
+      document.getElementById("successMsg").textContent =
+        `${sel.length} producto${sel.length > 1 ? "s" : ""} de ${prov} registrado${sel.length > 1 ? "s" : ""} correctamente.`;
+      document.getElementById("formView").style.display    = "none";
+      document.getElementById("successView").style.display = "block";
+    } else {
+      throw new Error(data.msg || "Error desconocido");
+    }
+  } catch(err) {
+    document.getElementById("loading").classList.remove("visible");
+    document.getElementById("btnEnviar").style.display = "block";
+    const errMsg = document.getElementById("errorMsg");
+    errMsg.textContent = "Error al guardar: " + err.message + ". Intentá de nuevo.";
+    errMsg.classList.add("visible");
+  }
+}
+
+function resetForm() {
+  document.getElementById("encargado").value = "";
+  document.getElementById("proveedor").value = "";
+  document.getElementById("boleta").value    = "";
+  document.getElementById("stepProductos").style.display = "none";
+  document.getElementById("resumen").classList.remove("visible");
+  document.getElementById("errorMsg").classList.remove("visible");
+  document.getElementById("btnEnviar").style.display  = "block";
+  document.getElementById("btnEnviar").disabled       = true;
+  document.getElementById("badgeCount").style.display = "none";
+  document.getElementById("formView").style.display    = "block";
+  document.getElementById("successView").style.display = "none";
+}
+</script>
+</body>
+</html>
